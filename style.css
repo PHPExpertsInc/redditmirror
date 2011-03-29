@@ -1,0 +1,43 @@
+body { font-family: 'Ubuntu', arial, serif; background: white; }
+#main_content { width: 55em; margin: 10px; }
+ul#badges { position: absolute; top: 0; left: 52em; text-align: center; }
+ul#badges { list-style: none; }
+ul#badges img { border: 0; }
+ul#badges a { text-decoration: none; }
+ol#links { }
+ol#links > li
+{
+	text-indent: 0;
+	min-height: 100px; border: 1px dashed lightgrey; margin: 10px 0 10px 0; width: 45em;
+}
+
+ol#links > li > span
+{
+/*	background: black;
+	min-height: 100px;
+	margin: 0px 0 0 0px;
+	float: left;
+	padding: -20px 20px 0 0;
+*/
+	border-right: 1px dashed lightgrey;
+	display: block;
+	float: left;
+	position: relative;
+/*	top: -19px;*/
+	left: 1.5em;
+	padding-right: 1em;
+	width: 19.5em;
+	overflow: auto;
+	height: 100px;
+}
+
+ol#links ul
+{
+	float: right; margin-top: 0px;
+}
+
+ol#links ul > li
+{
+	padding-right: 0.5em;
+}
+
