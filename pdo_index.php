@@ -248,46 +248,62 @@ No i'm looking for a number ;-) search for "number" and "row".
                 }
 
                 // Find Redditor's ID
+                ok you know what to do here...
+
                 $q2s = 'SELECT id FROM Redditors WHERE name=?';
                 $stmt = $pdo->prepare($q2s); //? is that the v ariable yep. now execute it
                 $stmt->execute(array($redditor));
 
-                if (mysql_num_rows($q2q) == 0)
+                if ($stmt->rowCount() == 0)
                 {
-                        $qs = sprintf('INSERT INTO Redditors (name) VALUES ("%s")', mysql_real_escape_string($redditor));
-                        mysql_query($qs);
-                        $redditorID = mysql_insert_id();
+                        $qs = 'INSERT INTO Redditors (name) VALUES (?)'; 
+                        $stmt = $pdo->prepare($qs);
+                        $stmt->execute(array($redditor));
+
+                        $qs = 'INSERT INTO Redditors (name) VALUES (?);
+                        $stmt = $pdo->prepare($qs);
+                        $stmt-execute(array($redditor));
+                        
+                        $redditorID = $pdo->lastInsertID();
                 }
                 else
                 {
-                        $redditorID = mysql_result($q2q, 0);
+                        $redditorID = $stmt->fetchColumn(0);
                 }
 
-                $q3s = sprintf('INSERT INTO GrabbedURLs (url, first_added, last_fetched) VALUES ("%s", NOW(), FROM_UNIXTIME(%d))',
-                               $url,
-                               $time);
-                error_log($q3s);
-                mysql_query($q3s);
-                $siteID = mysql_insert_id();
-                $q3s = sprintf('INSERT INTO RedditSubmissions ' . 
-                                       '(redditKey, title, url,  grabbedURLID, redditorID, categoryID, comments_count, published) VALUES ' .
-                                           '("%s",      "%s",  "%s", %d,           %d,         %d,         %d,             "%s")',
-                               $redditKey,
-                               $site['title'],
-                               $site['link'],
-                                           $siteID,
-                               $redditorID,
-                               $categoryID,
-                                           $comments_count,
-                               date('c', strtotime($site['pubDate'])));
-                error_log($q3s);
-                if (mysql_query($q3s) === false)
+                $q3s = 'INSERT INTO GrabbedURLs (url, first_added, last_fetched) ' .
+                            'VALUES (?, NOW(), FROM_UNIXTIME(?))';
+                $pdo->prepare($q3s);
+                $pdo->execute(array($url, $time));
+
+                $siteID = $pdo->lastInsertID();
+
+// This is how I format stuff like this.  You're under no obligation to copy, tho it'd be pretty cool if you thought my standard was worth adopting ;)
+// I like it cause it's organized and easy to read
+// Yeah, you coudl say it's 'beautiful'. Add $status = before $stmt->execute
+
+                $q3s = 'INSERT INTO RedditSubmissions ' . 
+                            '(redditKey, title, url,  grabbedURLID, redditorID, categoryID, comments_count, published) VALUES ' .
+                            '(?, ?,  ?,  ?  ?, ?,  ?,  ?)',
+                $stmt = $pdo->prepare($q3s);
+                $status = $stmt->execute(array($redditKey,
+                                                $site['title'],
+                                                $site['link'],
+                                                $siteID,
+                                                $redditorID,
+                                                $categoryID,
+                                                $comments_count,
+                                                date('c', strtotime($site['pubDate']
+                                            )
+                                        );
+
+                if ($status === false)
                 {
-                        mysql_query('ROLLBACK');
+                        $pdo->rollback();
                 }
                 else
                 {
-                        mysql_query('COMMIT');
+                        $pdo->commit();
                 }
         }
 
