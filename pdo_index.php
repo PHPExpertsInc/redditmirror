@@ -63,12 +63,12 @@ if (isset($_GET['source']) && $_GET['source'] == 'db')
 if (isset($_GET['startDate']))
 {
         $grabFromDB = true;
-        $_GET['startDate'] = strtotime($_GET['startDate']) + 86400;
-        $startDate = 'FROM_UNIXTIME(' . $_GET['startDate'] . ')';
+        $timestamp = strtotime($_GET['startDate']) + 86400;
+        $startDate = date('c', $timestamp);
 }
 else
 {
-        $startDate = 'UTC_TIMESTAMP()';
+        $startDate = date('c');
 }
 
 // Grab grabbed sites record...
@@ -108,8 +108,10 @@ ob_start('ob_gzhandler');
                  WHERE published BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND ? 
                  ORDER BY published';
 // and the 2nd one.. and make it "AND ? ORDER" e.g. remove the ' . and the first one too
-        $pdo->prepare($sql);
-        $stmt->execute();
+        $stmt = $pdo->prepare($qs);
+		$stmt->execute(array($startDate, $startDate));
+
+
         while ($qr =  $stmt->fetch())
         {
                 $key = makeSiteKey($qr['url'], $qr['redditKey']);
@@ -225,11 +227,11 @@ No i'm looking for a number ;-) search for "number" and "row".
                 if ($stmt->rowCount() == 0)
                 {
                     // So change thish entire $qs string into the one w/ placeholders (?) instead of variables, and move the variables to $pdo->execute(array($var1, $var2, etc)) lemme go back up hang on yes stuck
-                    We're going to 1. rip out sprintf(), 2. replace %s with ? and 3. move $category into the $stmt->execute(array($category)). CleaR? mhm go for it ;p what goes in place of sprintf? Nothing ;) It's the only way to have semi-decent security in the old days.
-                    you can ask me to do this, if u want. I think I can do one or two things but the first part I don't get. So I replace %s with ? and have what? $qs = ?;
+                    // We're going to 1. rip out sprintf(), 2. replace %s with ? and 3. move $category into the $stmt->execute(array($category)). CleaR? mhm go for it ;p what goes in place of sprintf? Nothing ;) It's the only way to have semi-decent security in the old days.
+                    // you can ask me to do this, if u want. I think I can do one or two things but the first part I don't get. So I replace %s with ? and have what? $qs = ?;
 
 
-                        $qs = 'NSERT INTO Categories (name) VALUES (?); 
+                        $qs = 'NSERT INTO Categories (name) VALUES (?)'; 
                         $stmt = $pdo->prepare($qs);
                         $stmt->execute(array($category));
                         echo '<div>', $qs, '</div>';
@@ -248,8 +250,6 @@ No i'm looking for a number ;-) search for "number" and "row".
                 }
 
                 // Find Redditor's ID
-                ok you know what to do here...
-
                 $q2s = 'SELECT id FROM Redditors WHERE name=?';
                 $stmt = $pdo->prepare($q2s); //? is that the v ariable yep. now execute it
                 $stmt->execute(array($redditor));
@@ -260,7 +260,7 @@ No i'm looking for a number ;-) search for "number" and "row".
                         $stmt = $pdo->prepare($qs);
                         $stmt->execute(array($redditor));
 
-                        $qs = 'INSERT INTO Redditors (name) VALUES (?);
+                        $qs = 'INSERT INTO Redditors (name) VALUES (?)';
                         $stmt = $pdo->prepare($qs);
                         $stmt-execute(array($redditor));
                         
@@ -284,7 +284,7 @@ No i'm looking for a number ;-) search for "number" and "row".
 
                 $q3s = 'INSERT INTO RedditSubmissions ' . 
                             '(redditKey, title, url,  grabbedURLID, redditorID, categoryID, comments_count, published) VALUES ' .
-                            '(?, ?,  ?,  ?  ?, ?,  ?,  ?)',
+                            '(?, ?,  ?,  ?  ?, ?,  ?,  ?)';
                 $stmt = $pdo->prepare($q3s);
                 $status = $stmt->execute(array($redditKey,
                                                 $site['title'],
@@ -293,7 +293,7 @@ No i'm looking for a number ;-) search for "number" and "row".
                                                 $redditorID,
                                                 $categoryID,
                                                 $comments_count,
-                                                date('c', strtotime($site['pubDate']
+                                                date('c', strtotime($site['pubDate']))
                                             )
                                         );
 
