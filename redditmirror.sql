@@ -174,23 +174,22 @@ CREATE TABLE "xref" (
 
 -- Dump completed on 2011-03-30 14:15:43
 
-CREATE VIEW vw_RedditorArticleCount AS
-	SELECT r.id AS id,
-	       r.name AS name,
-		   count(rs.redditorID) AS count 
-	FROM RedditSubmissions rs
-	JOIN Redditors r ON r.id = rs.redditorID
-	GROUP BY rs.redditorID;
+CREATE VIEW "vw_RedditorArticleCount" AS
+        SELECT MIN(r.id) AS id,
+               MIN(r.name) AS name,
+               count(rs."redditorID") AS count
+        FROM "RedditSubmissions" rs
+        JOIN "Redditors" r ON r.id = rs."redditorID"
+        GROUP BY rs."redditorID";
 
-
-CREATE VIEW vw_RedditLinks AS
+CREATE VIEW "vw_RedditLinks" AS
 	SELECT g.url AS url,
 		   rs.title AS title,
 		   rs.published AS published,
-		   rs.redditKey AS redditKey,
+		   rs."redditKey" AS "redditKey",
 		   date_part('epoch', g.last_fetched) AS last_fetched,
-		   rs.url AS commentLink
-   FROM GrabbedURLs g
-   JOIN RedditSubmissions rs ON rs.grabbedURLID = g.id;
+		   rs.url AS "commentLink"
+   FROM "GrabbedURLs" g
+   JOIN "RedditSubmissions" rs ON rs."grabbedURLID" = g.id;
 
 
