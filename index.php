@@ -50,7 +50,9 @@ $update = false;
 require_once('lastRSS.inc');
 require_once('.dbcreds');			// Contains class DBConfig
 
-$pdo = new PDO(sprintf('mysql:host=%s;dbname=%s', DBConfig::$host, DBConfig::$db), DBConfig::$user, DBConfig::$pass);
+$dblink = mysql_connect(DBConfig::$host, DBConfig::$user, DBConfig::$pass);
+mysql_select_db(DBConfig::$db);
+echo mysql_error();
 
 $grabFromDB = false;
 
@@ -63,7 +65,7 @@ if (isset($_GET['startDate']))
 {
 	$grabFromDB = true;
 	$_GET['startDate'] = strtotime($_GET['startDate']) + 86400;
-	$startDate = 'FROM_UNIXTIME(' . $_GET['startDate'] . ')';
+	$startDate = 'FROM_UNIXTIME(' . mysql_real_escape_string($_GET['startDate']) . ')';
 }
 else
 {
@@ -100,8 +102,8 @@ ob_start('ob_gzhandler');
 	mysql_select_db(DBConfig::$db);
 	$qs = 'SELECT * FROM vw_RedditLinks WHERE published BETWEEN DATE_SUB(' . $startDate . ', INTERVAL 1 DAY) AND ' . $startDate . ' ORDER BY published';
 //	echo $qs;
-	$qq = $pdo->prepare($sql) . $stmt->execute();
-	while ($qr =  $stmt->fetch($qq))
+	$qq = mysql_query($qs);
+	while ($qr = mysql_fetch_array($qq))
 	{
 		$key = makeSiteKey($qr['url'], $qr['redditKey']);
 		$grabbed_sites[$qr['url']] = array('title' => $qr['title'],
