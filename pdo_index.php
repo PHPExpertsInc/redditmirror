@@ -272,7 +272,7 @@ No i'm looking for a number ;-) search for "number" and "row".
                 }
 
                 $q3s = 'INSERT INTO grabbed_urls (url, first_added, last_fetched) ' .
-                            'VALUES (?, NOW(), ?)';
+                            'VALUES (?, NOW(), to_timestamp(?))';
                 $pdo->prepare($q3s);
                 $pdo->execute(array($url, $time));
 
