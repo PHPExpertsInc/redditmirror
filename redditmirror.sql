@@ -16,11 +16,7 @@
 
 DROP TABLE IF EXISTS CachedDomains;
 CREATE TABLE CachedDomains (
-  
   id serial,
-
-
-
   name varchar(254) NOT NULL DEFAULT '',
   firstGrabbed timestamp DEFAULT NULL,
   count serial,
@@ -193,7 +189,7 @@ CREATE VIEW vw_RedditLinks AS
 		   rs.redditKey AS redditKey,
 		   date_part('epoch', g.last_fetched) AS last_fetched,
 		   rs.url AS commentLink
-   FROM GrabbedURLs g
-   JOIN RedditSubmissions rs ON rs.grabbedURLID = g.id;
+   FROM "GrabbedURLs" g
+   JOIN "RedditSubmissions" rs ON rs.grabbedURLID = g.id;
 
 

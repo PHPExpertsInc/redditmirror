@@ -106,7 +106,7 @@ ob_start('ob_gzhandler');
 	while ($qr = mysql_fetch_array($qq))
 	{
 		$key = makeSiteKey($qr['url'], $qr['redditKey']);
-		$grabbed_sites[$qr['url']] = array('title' => $qr['title'],
+		$grabbed_sites[$qr['url']] = array('title' => html_entity_decode($qr['title']),
 		                                   'last updated' => $qr['last_fetched'],
 		                                   'pubDate' => $qr['published'],
 		                                   'key' => $key,
@@ -174,7 +174,8 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
 		exec("httrack --continue --timeout=30 --robots=0 --mirror '" . $url . "' --depth=2 '-*' '+*.flv' '+*.css' '+*.js' '+*.jpg' '+*.gif' '+*.png' '+*.ico'  --user-agent 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.6 (KHTML, like Gecko) Chrome/7.0.508.0 Safari/534.6' -O cache/websites/" . $key);
 		// Record time grabbed
 		$time = time();
-		$grabbed_sites[$url] = array('title' => $site['title'],
+
+		$grabbed_sites[$url] = array('title' => html_entity_decode($site['title']),
 		                             'last updated' => $time,
 		                             'pubDate' => $site['pubDate'],
 		                             'key' => $key,
@@ -194,7 +195,7 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
 		if (mysql_num_rows($q1q) == 0)
 		{
 			$qs = sprintf('INSERT INTO Categories (name) VALUES ("%s")', mysql_real_escape_string($category));
-                        echo '<div>', $qs, '</div>';
+error_log($qs);
 			mysql_query($qs);
 			$categoryID = mysql_insert_id();
 		}
@@ -211,6 +212,7 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
 		{
 			$qs = sprintf('INSERT INTO Redditors (name) VALUES ("%s")', mysql_real_escape_string($redditor));
 			mysql_query($qs);
+error_log($qs);
 			$redditorID = mysql_insert_id();
 		}
 		else
@@ -228,7 +230,7 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
 				       '(redditKey, title, url,  grabbedURLID, redditorID, categoryID, comments_count, published) VALUES ' .
 					   '("%s",      "%s",  "%s", %d,           %d,         %d,         %d,             "%s")',
 		               $redditKey,
-		               $site['title'],
+		               html_entity_decode($site['title']),
 		               $site['link'],
 					   $siteID,
 		               $redditorID,
@@ -253,8 +255,7 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
 //	apc_delete('redditmirror.cc: grabbed_sites');
 }
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
 		<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
