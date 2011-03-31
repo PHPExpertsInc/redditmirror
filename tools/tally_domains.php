@@ -7,8 +7,8 @@ $pdo = new PDO(sprintf('mysql:host=%s;dbname=%s', DBConfig::$host, DBConfig::$db
 $stmt = $pdo->prepare('SELECT DISTINCT(url), published FROM GrabbedSites_v2 ORDER BY id');
 $stmt->execute();
 
-$insertStmt = $pdo->prepare('INSERT INTO CachedDomains (name, firstGrabbed, count) VALUES (?, ?, 1)');
-$updateStmt = $pdo->prepare('UPDATE CachedDomains SET count=count+1 WHERE name=?');
+$insertStmt = $pdo->prepare('INSERT INTO cached_domains (name, firstGrabbed, count) VALUES (?, ?, 1)');
+$updateStmt = $pdo->prepare('UPDATE cached_domains SET count=count+1 WHERE name=?');
 
 while (($row = $stmt->fetch(PDO::FETCH_ASSOC)))
 {

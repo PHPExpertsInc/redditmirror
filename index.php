@@ -77,7 +77,7 @@ $dblink = null;
 /*
 if (isset($_GET['grabAll']))
 {
-	$qs = 'SELECT url, title, published, redditKey, UNIX_TIMESTAMP(last_fetched) last_fetched, commentLink FROM GrabbedURLs ORDER BY published';
+	$qs = 'SELECT url, title, published, redditKey, UNIX_TIMESTAMP(last_fetched) last_fetched, commentLink FROM grabbed_urls ORDER BY published';
 	$qq = mysql_query($qs);
 
 	while ($qr = mysql_fetch_object($qq))
@@ -100,7 +100,7 @@ ob_start('ob_gzhandler');
 
 	$dblink = mysql_connect(DBConfig::$host, DBConfig::$user, DBConfig::$pass);
 	mysql_select_db(DBConfig::$db);
-	$qs = 'SELECT * FROM vw_RedditLinks WHERE published BETWEEN DATE_SUB(' . $startDate . ', INTERVAL 1 DAY) AND ' . $startDate . ' ORDER BY published';
+	$qs = 'SELECT * FROM vw_reddit_links WHERE published BETWEEN DATE_SUB(' . $startDate . ', INTERVAL 1 DAY) AND ' . $startDate . ' ORDER BY published';
 //	echo $qs;
 	$qq = mysql_query($qs);
 	while ($qr = mysql_fetch_array($qq))
@@ -189,12 +189,12 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
 
 		mysql_query('BEGIN');
 		// Find Subredit ID
-		$q1s = 'SELECT id FROM Categories WHERE name="' . mysql_real_escape_string($category) . '"';
+		$q1s = 'SELECT id FROM categories WHERE name="' . mysql_real_escape_string($category) . '"';
 		$q1q = mysql_query($q1s);
 
 		if (mysql_num_rows($q1q) == 0)
 		{
-			$qs = sprintf('INSERT INTO Categories (name) VALUES ("%s")', mysql_real_escape_string($category));
+			$qs = sprintf('INSERT INTO categories (name) VALUES ("%s")', mysql_real_escape_string($category));
 error_log($qs);
 			mysql_query($qs);
 			$categoryID = mysql_insert_id();
@@ -205,12 +205,12 @@ error_log($qs);
 		}
 
 		// Find Redditor's ID
-		$q2s = 'SELECT id FROM Redditors WHERE name="' . mysql_real_escape_string($redditor) . '"';
+		$q2s = 'SELECT id FROM redditors WHERE name="' . mysql_real_escape_string($redditor) . '"';
 		$q2q = mysql_query($q2s);
 
 		if (mysql_num_rows($q2q) == 0)
 		{
-			$qs = sprintf('INSERT INTO Redditors (name) VALUES ("%s")', mysql_real_escape_string($redditor));
+			$qs = sprintf('INSERT INTO redditors (name) VALUES ("%s")', mysql_real_escape_string($redditor));
 			mysql_query($qs);
 error_log($qs);
 			$redditorID = mysql_insert_id();
@@ -220,13 +220,13 @@ error_log($qs);
 			$redditorID = mysql_result($q2q, 0);
 		}
 
-		$q3s = sprintf('INSERT INTO GrabbedURLs (url, first_added, last_fetched) VALUES ("%s", NOW(), FROM_UNIXTIME(%d))',
+		$q3s = sprintf('INSERT INTO grabbed_urls (url, first_added, last_fetched) VALUES ("%s", NOW(), FROM_UNIXTIME(%d))',
 		               $url,
 		               $time);
 		error_log($q3s);
 		mysql_query($q3s);
 		$siteID = mysql_insert_id();
-		$q3s = sprintf('INSERT INTO RedditSubmissions ' . 
+		$q3s = sprintf('INSERT INTO reddit_submissions ' . 
 				       '(redditKey, title, url,  grabbedURLID, redditorID, categoryID, comments_count, published) VALUES ' .
 					   '("%s",      "%s",  "%s", %d,           %d,         %d,         %d,             "%s")',
 		               $redditKey,

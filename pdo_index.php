@@ -76,7 +76,7 @@ $dblink = null;
 /*
 if (isset($_GET['grabAll']))
 {
-        $qs = 'SELECT url, title, published, redditKey, UNIX_TIMESTAMP(last_fetched) last_fetched, commentLink FROM GrabbedURLs ORDER BY published';
+        $qs = 'SELECT url, title, published, redditKey, UNIX_TIMESTAMP(last_fetched) last_fetched, commentLink FROM grabbed_urls ORDER BY published';
 
 // So you see that mysql_query($qs)? Replace w/ $pdo->prepare($qs)
 // Change $qq to $stmt (means $statement)
@@ -104,7 +104,7 @@ ob_start('ob_gzhandler');
 // Line 105 seems unnecessary as we already connect way up at the top. So get rid of 105 and 106.
 // We do NOT want to have variables inside our SQL string, really ever.
 // So replace variables like ' . $startDate . ' with just ?.
-        $qs = 'SELECT * FROM vw_RedditLinks 
+        $qs = 'SELECT * FROM vw_reddit_links 
                  WHERE published BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND ? 
                  ORDER BY published';
 // and the 2nd one.. and make it "AND ? ORDER" e.g. remove the ' . and the first one too
@@ -197,12 +197,12 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
                 $pdo->beginTransaction();
                 // Find Subredit ID
                 
-                $q1s = 'SELECT id FROM Categories WHERE name=?';
+                $q1s = 'SELECT id FROM categories WHERE name=?';
                 $stmt = $pdo->prepare($q1s);
                 $stmt->execute(array($category));
 
                 
-                $q1s = 'SELECT id FROM Categories WHERE name=?';
+                $q1s = 'SELECT id FROM categories WHERE name=?';
                 $stmt = $pdo->prepare($q1s);
                 $stmt->execute(array($category));
 
@@ -231,7 +231,7 @@ No i'm looking for a number ;-) search for "number" and "row".
                     // you can ask me to do this, if u want. I think I can do one or two things but the first part I don't get. So I replace %s with ? and have what? $qs = ?;
 
 
-                        $qs = 'NSERT INTO Categories (name) VALUES (?)'; 
+                        $qs = 'NSERT INTO categories (name) VALUES (?)'; 
                         $stmt = $pdo->prepare($qs);
                         $stmt->execute(array($category));
                         echo '<div>', $qs, '</div>';
@@ -250,17 +250,17 @@ No i'm looking for a number ;-) search for "number" and "row".
                 }
 
                 // Find Redditor's ID
-                $q2s = 'SELECT id FROM Redditors WHERE name=?';
+                $q2s = 'SELECT id FROM redditors WHERE name=?';
                 $stmt = $pdo->prepare($q2s); //? is that the v ariable yep. now execute it
                 $stmt->execute(array($redditor));
 
                 if ($stmt->rowCount() == 0)
                 {
-                        $qs = 'INSERT INTO Redditors (name) VALUES (?)'; 
+                        $qs = 'INSERT INTO redditors (name) VALUES (?)'; 
                         $stmt = $pdo->prepare($qs);
                         $stmt->execute(array($redditor));
 
-                        $qs = 'INSERT INTO Redditors (name) VALUES (?)';
+                        $qs = 'INSERT INTO redditors (name) VALUES (?)';
                         $stmt = $pdo->prepare($qs);
                         $stmt-execute(array($redditor));
                         
@@ -271,7 +271,7 @@ No i'm looking for a number ;-) search for "number" and "row".
                         $redditorID = $stmt->fetchColumn(0);
                 }
 
-                $q3s = 'INSERT INTO GrabbedURLs (url, first_added, last_fetched) ' .
+                $q3s = 'INSERT INTO grabbed_urls (url, first_added, last_fetched) ' .
                             'VALUES (?, NOW(), ?)';
                 $pdo->prepare($q3s);
                 $pdo->execute(array($url, $time));
@@ -282,7 +282,7 @@ No i'm looking for a number ;-) search for "number" and "row".
 // I like it cause it's organized and easy to read
 // Yeah, you coudl say it's 'beautiful'. Add $status = before $stmt->execute
 
-                $q3s = 'INSERT INTO RedditSubmissions ' . 
+                $q3s = 'INSERT INTO reddit_submissions ' . 
                             '(redditKey, title, url,  grabbedURLID, redditorID, categoryID, comments_count, published) VALUES ' .
                             '(?, ?,  ?,  ?  ?, ?,  ?,  ?)';
                 $stmt = $pdo->prepare($q3s);

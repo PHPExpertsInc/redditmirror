@@ -4,7 +4,7 @@
 /* here's the table creation sql:
 Actually, i already have the domains. I'm just going to add another field for isAlive
 
-ALTER TABLE CachedDomains ADD isAlive boolean;
+ALTER TABLE cached_domains ADD isAlive boolean;
 */ 
 // Now i need a function to detect whether the site is alive or not.
 // To determine this, we're going to use the CURL extension, which is useful
@@ -42,8 +42,8 @@ require '.dbcreds';
 
 $pdo = new PDO(sprintf('mysql:host=%s;dbname=%s', DBConfig::$host, DBConfig::$db), DBConfig::$user, DBConfig::$pass);
 
-$stmt = $pdo->prepare('SELECT name FROM CachedDomains WHERE name LIKE ? AND isAlive=false ORDER BY name');
-$updateStmt = $pdo->prepare('UPDATE CachedDomains SET isAlive=? WHERE name=?');
+$stmt = $pdo->prepare('SELECT name FROM cached_domains WHERE name LIKE ? AND isAlive=false ORDER BY name');
+$updateStmt = $pdo->prepare('UPDATE cached_domains SET isAlive=? WHERE name=?');
 $stmt->execute(array($domainPrefix . '%'));
 
 while (($row = $stmt->fetch(PDO::FETCH_ASSOC)))
