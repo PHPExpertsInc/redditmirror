@@ -60,7 +60,7 @@ $stmt = $pdo->prepare('SELECT url FROM vw_RedditLinks WHERE redditKey=?');
 $stmt->execute(array($redditKey));
 $originalURL = $stmt->fetchColumn();
 
-$outputDir = isset($argv[2]) ? $argv[2] : '../cache/consolidated/' . $orig_basedir;
+$outputDir = isset($argv[2]) ? $argv[2] : '../cache/consolidated/' . date('Y/m/d') . '/' . $orig_basedir;
 
 $consolidator = new WebpageConsolidator;
 $preHTML = '<h3 style="text-align: center; padding-bottom: 5px; margin-bottom: 5px; border-bottom: black 2px solid; width: 100%; height: 1em; background: white; text-transform: none">ORIGINAL URL: <a href="' . htmlspecialchars($originalURL) . '">' . htmlspecialchars($originalURL) . '</a></h3>';
@@ -74,7 +74,7 @@ if ($html == WebpageConsolidator::STATUS_BLANK_HTML)
 //	header('HTTP/1.1 301 Moved Permanently');
 //	header('Location: http://' . $_SERVER['HTTP_HOST'] . '/cache/websites/' . $orig_basedir . '/');
 	echo "<div style=\"text-align: center\"><h3>ORIGINAL URL: <a href=\"$originalURL\">$originalURL</a></h3>\n";
-	$url = 'http://' . $_SERVER['HTTP_HOST'] . '/cache/websites/' . $orig_basedir . '/' . preg_replace('/http:\/\//', '', $originalURL);
+	$url = 'http://' . $_SERVER['HTTP_HOST'] . '/cache/websites/' . date('Y/m/d') . '/' . $orig_basedir . '/' . preg_replace('/http:\/\//', '', $originalURL);
     printf('<img src="%s" alt="%s"/></div>', $url, $originalURL); 
 	exit;
 }
