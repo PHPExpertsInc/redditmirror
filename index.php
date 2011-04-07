@@ -1,4 +1,7 @@
 <?php
+
+define('GRABBED_SITES_KEY', 'redditmirror.cc: grabbed_sites');
+
 if (isset($_SERVER["HTTP_ACCEPT"]) && stristr( $_SERVER["HTTP_ACCEPT"], "application/xhtml+xml"))
 {
     header("Content-type: application/xhtml+xml");
@@ -96,9 +99,12 @@ if (isset($_GET['grabAll']))
 }
 */
 
+
+
 ob_start('ob_gzhandler');
-//if ($grabFromDB === true || ($grabbed_sites = apc_fetch('redditmirror.cc grabbed_sites')) === false)
+if ($grabFromDB === true || ($grabbed_sites = apc_fetch(GRABBED_SITES_KEY)) === false)
 {
+print '<pre>'; print $grabFromDB;	print_r($grabbed_sites); print '</pre>';
         // Looks stale, get it from the database
         $grabbed_sites = array();
 // Line 105 seems unnecessary as we already connect way up at the top. So get rid of 105 and 106.
@@ -310,7 +316,7 @@ No i'm looking for a number ;-) search for "number" and "row".
 
         if ($grabFromDB === false)
         {
-                apc_store('redditmirror.cc: grabbed_sites', $grabbed_sites, 600);
+                apc_store(GRABBED_SITES_KEY, $grabbed_sites, 600);
         }
 //        apc_delete('redditmirror.cc: grabbed_sites');
 }
