@@ -104,7 +104,6 @@ if (isset($_GET['grabAll']))
 ob_start('ob_gzhandler');
 if ($grabFromDB === true || ($grabbed_sites = apc_fetch(GRABBED_SITES_KEY)) === false)
 {
-print '<pre>'; print $grabFromDB;	print_r($grabbed_sites); print '</pre>';
         // Looks stale, get it from the database
         $grabbed_sites = array();
 // Line 105 seems unnecessary as we already connect way up at the top. So get rid of 105 and 106.
@@ -126,14 +125,6 @@ print '<pre>'; print $grabFromDB;	print_r($grabbed_sites); print '</pre>';
                                                    'pubDate' => $qr['published'],
                                                    'key' => $key,
                                                    'comments' => $qr['commentLink']);
-                if (isset($_GET['debug']))
-                {
-                        $url = $qr['url'];
-                        print("httrack --timeout=30 --continue --robots=0 --mirror '" . $url . "' --depth=2 '-*' '+*.css' '+*.js' '+*.jpg' '+*.gif' '+*.png' '+*.ico' -O cache/websites/" . $key);
-//                        echo '<pre>' . print_r($grabbed_sites[$qr['url']], true) . '</pre>';
-                        flush();
-                        exec("httrack --continue --robots=0 timeout=30 --mirror '" . $url . "' --depth=2 '-*' '+*.css' '+*.js' '+*.jpg' '+*.gif' '+*.png' '+*.ico' -O cache/websites/" . $key);
-                }
         }
 }
 
@@ -186,7 +177,18 @@ if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') &&
                 echo '<div>Fetching ' . $url . '...</div>' . "\n";
                 flush();
                 error_log('Running httrack!!');
-                exec("httrack --continue --timeout=30 --robots=0 --mirror '" . $url . "' --depth=2 '-*' '+*.flv' '+*.css' '+*.js' '+*.jpg' '+*.gif' '+*.png' '+*.ico'  --user-agent 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.6 (KHTML, like Gecko) Chrome/7.0.508.0 Safari/534.6' -O cache/websites/" . $key);
+
+				$output_directory = 'cache/websites/' . date('Y/m/d');
+
+				// Create the directory if it doesn't exist.
+				if (!file_exists($output_directory))
+				{
+					mkdir($output_directory);
+				}
+
+//                exec("httrack --continue --timeout=30 --robots=0 --mirror '" . $url . "' --depth=2 '-*' '+*.flv' '+*.css' '+*.js' '+*.jpg' '+*.gif' '+*.png' '+*.ico'  --user-agent 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.6 (KHTML, like Gecko) Chrome/7.0.508.0 Safari/534.6' -O cache/websites/" . $key);
+				$status = exec('/usr/local/bin/mirror_page.php ' . $url . ' ' . $output_path . '/' . $key);
+
                 // Record time grabbed
                 $time = time();
                 $grabbed_sites[$url] = array('title' => $site['title'],
