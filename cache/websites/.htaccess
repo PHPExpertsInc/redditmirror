@@ -1,0 +1,8 @@
+RewriteEngine on
+
+#RewriteCond %{HTTP_USER_AGENT} !^CoralWebPrx
+#RewriteCond %{QUERY_STRING} !(^|&)coral-no-serve$ 
+#RewriteRule (.*\.(jpg|png|gif|css|js))$ http://www.redditmirror.cc.nyud.net/cache/websites/$1
+
+RewriteRule www.rgbpicture.com_b3z9v/index.html http://www.redditmirror.cc/cache/consolidated/www.rgbpicture.com_b3z9v.htmlz [L]
+RewriteRule www.rgbpicture.com_b3z9v/www.rgbpicture.com/wtf-photos-from-the-past.html http://www.redditmirror.cc/cache/consolidated/www.rgbpicture.com_b3z9v.htmlz [L]

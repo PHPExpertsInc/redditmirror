@@ -385,15 +385,14 @@ if ($grabFromDB === true)
                                 <li>
                                         <span>
                                                 <!-- <a href="cache/websites/<?php echo htmlspecialchars($data['key']); ?>"></a> -->
-                                                <a href="cache/consolidated/<?php echo htmlspecialchars(urlencode($data['key'])); ?>.htmlz"><?php echo htmlspecialchars($data['title']); ?></a>
+                                                <a href="cache/consolidated/<?php echo date('Y/m/d', strtotime($data['pubDate'])); ?>/<?php echo htmlspecialchars(urlencode($data['key'])); ?>.htmlz"><?php echo htmlspecialchars($data['title']); ?></a>
                                         </span>
                                         <ul>
                                                 <li><a href="<?php echo htmlspecialchars($data['comments']); ?>">[comments]</a></li>
                                                 <li><a href="<?php echo htmlspecialchars($url); ?>">[direct link]</a></li>
                                                 <li>Published at <?php echo date('r', strtotime($data['pubDate'])); ?></li>
                                                 <li>Fetched at <?php echo date('r', $data['last updated']); ?></li>
-                                                <!-- <li><a href="webpage_consolidator/?base=<?php echo htmlspecialchars(urlencode($data['key'])); ?>">[consolidate files]</a></li> -->
-                                                <li><a href="cache/websites/<?php echo htmlspecialchars($data['key']); ?>">[original mirror]</a></li>
+                                                <li><a href="cache/websites/<?php echo date('Y/m/d', strtotime($data['pubDate'])); ?>/<?php echo htmlspecialchars($data['key']); ?>">[original mirror]</a></li>
                                         </ul>
                                 </li>
 <?php

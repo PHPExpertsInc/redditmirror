@@ -1,0 +1,10 @@
+RewriteEngine on
+
+#RewriteCond %{HTTP_USER_AGENT} !^CoralWebPrx
+#RewriteCond %{QUERY_STRING} !(^|&)coral-no-serve$ 
+#RewriteRule (.*\.(jpg|png|gif|css|js))$ http://www.redditmirror.cc.nyud.net/cache/websites/$1
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule (.*)\.htmlz$ ../../webpage_consolidator/?base=$1 [L]
+
