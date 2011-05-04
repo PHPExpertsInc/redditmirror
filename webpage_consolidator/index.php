@@ -29,6 +29,9 @@ if (php_sapi_name() == 'cli')
     }
 }
 
+// Goddess, look @ line 28. No input filter ;(((
+
+
 //print_r($_GET); exit;
 
 if (!isset($_GET['base']))

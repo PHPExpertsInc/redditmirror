@@ -14,14 +14,10 @@ $url = filter_input(INPUT_POST, 'url', FILTER_SANITIZE_URL);
 $matches = array();
 preg_match('|https?://([^/]+)|', $url, $matches);
 $domain = $matches[1];
-print_r($matches); exit;
+//print_r($matches); exit;
 
-$title = !empty($title) ? $title : $domain;
-print_r($_SESSION);
+
 $userID = $_SESSION['userID'];
-
-$status = exec('/usr/local/bin/mirror_page.php ' . $url . ' ' . $title);
-if ($status == false) { exit; }
 
 try
 {
@@ -41,11 +37,17 @@ try
 	$stmt->execute(array($userID, $urlID, $title));
 
 	$pdo->commit();
-header('Location: http://' . $_SERVER['HTTP_HOST'] . '/users/profile.php?secret=' . $_SESSION['secret']);
 }
 catch(PDOException $e)
 {
 	echo 'PDO Exception: ' . $e->getMessage();
 	$pdo->rollback();
+	exit;
 }
 
+$path = "/var/www/redditmirror.cc/users/grabbed_urls/{$domain}_{$urlID}";
+$command = '/usr/local/bin/mirror_page.php ' . $url . ' ' . $path;
+//echo "Command: $command"; exit;
+$status = exec($command);
+if ($status == false) { exit; }
+header('Location: http://' . $_SERVER['HTTP_HOST'] . '/users/profile.php?secret=' . $_SESSION['secret']);

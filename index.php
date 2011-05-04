@@ -76,30 +76,6 @@ else
 
 // Grab grabbed sites record...
 $dblink = null;
-/*
-if (isset($_GET['grabAll']))
-{
-        $qs = 'SELECT url, title, published, redditKey, UNIX_TIMESTAMP(last_fetched) last_fetched, commentLink FROM GrabbedURLs ORDER BY published';
-
-// So you see that mysql_query($qs)? Replace w/ $pdo->prepare($qs)
-// Change $qq to $stmt (means $statement)
-        $stmt = $pdo->prepare($qs);
-// Change the mysql_fetch_object($qq) to $stmt->fetchObject()
-// What's happening is that we're using the OOP PDO instead of mysql_functions.
-// ok skip to line 105
-        while ($qr = $stmt->fetchObject())
-        {
-                $key = makeSiteKey($qr->url, $qr->redditKey);
-                echo '<div>Grabbing ' . $qr->title . ' -> ' . $key . '</div>' . "\n";
-                flush();
-                exec("httrack --timeout=30 --continue --robots=0 --mirror '" . $qr->url . "' --depth=2 '-*' '+*.css' '+*.js' '+*.jpg' '+*.gif' '+*.png' '+*.ico' -O cache/websites/" . $key);
-        }
-
-        exit;
-}
-*/
-
-
 
 ob_start('ob_gzhandler');
 if ($grabFromDB === true || ($grabbed_sites = apc_fetch(GRABBED_SITES_KEY)) === false)
@@ -128,200 +104,6 @@ if ($grabFromDB === true || ($grabbed_sites = apc_fetch(GRABBED_SITES_KEY)) === 
         }
 }
 
-$rss = new LastRSS();
-$rss->cache_dir = 'cache';
-$rss->cache_time = 600; // 5 minutes
-$rss_url = 'http://www.reddit.com/.rss';
-
-if (!$grabFromDB && (isset($_GET['secret']) && $_GET['secret'] == 'asdf2223') && $results = $rss->Get($rss_url))
-{
-        trigger_error('omg', E_USER_WARNING);
-        foreach($results['items'] as $site)
-        {
-                if (isset($_GET['debug']) && $_GET['debug'] == 1)
-                {
-                        echo '<pre>' . print_r($site, true) . '</pre>';
-                }
-
-                $link = $site['link'];
-                $site['description'] = htmlspecialchars_decode($site['description']);
-
-                // We only care about remote sites, not reddit ones...
-                $matches = array();
-                $status = preg_match('/submitted by [^>]+>([^<]+)<\/a>(?: to <a href="[^>]+"> ([^<]+)<\/a>)?.+<a href="(http[^"]+)">\[link\]<\/a>.+\[([0-9]+) comments]/', $site['description'], $matches);
-
-//                echo '<pre>matches: ', print_r($matches, true), '</pre>';
-                if ($status == false || !isset($matches[1]))
-                {
-                        // something went wrong or it's a reddit URL; skip it.
-                        continue;
-                }
-
-                $redditor = trim($matches[1]);
-                $category = trim($matches[2]);
-                $url = trim($matches[3]);
-                $comments_count = trim($matches[4]);
-
-//                if (isset($grabbed_sites[$url]) && !($update && $grabbed_sites[$url]['last updated'] > time() - REDDITMIRROR_TTL))
-                if (!isset($_GET['refresh']) && isset($grabbed_sites[$url]))
-                {
-                        continue;
-                }
-
-                $matches = array();
-                preg_match('/\/comments\/([a-z0-9]+)/', $site['link'], $matches);
-                $redditKey = $matches[1];
-
-                set_time_limit(0);
-                $key = makeSiteKey($url, $redditKey);
-                echo '<div>Fetching ' . $url . '...</div>' . "\n";
-                flush();
-                error_log('Running httrack!!');
-
-				$output_directory = 'cache/websites/' . date('Y/m/d');
-
-				// Create the directory if it doesn't exist.
-				if (!file_exists($output_directory))
-				{
-					mkdir($output_directory);
-				}
-
-//                exec("httrack --continue --timeout=30 --robots=0 --mirror '" . $url . "' --depth=2 '-*' '+*.flv' '+*.css' '+*.js' '+*.jpg' '+*.gif' '+*.png' '+*.ico'  --user-agent 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.6 (KHTML, like Gecko) Chrome/7.0.508.0 Safari/534.6' -O cache/websites/" . $key);
-				$status = exec('/usr/local/bin/mirror_page.php ' . $url . ' ' . $output_path . '/' . $key);
-
-                // Record time grabbed
-                $time = time();
-                $grabbed_sites[$url] = array('title' => $site['title'],
-                                             'last updated' => $time,
-                                             'pubDate' => $site['pubDate'],
-                                             'key' => $key,
-                                             'comments' => $site['link']);
-
-// I'm almost positive we can delete this if statement, as we connect above...
-//the "BEGIN" thing starts a SQL transaction. In PDO, you do this via:
-// $pdo->beginTransaction() instead of mysql_query();
-// you roll them back via $pdo->rollback() and you commit via $pdo->commit().
-// Go ahead and do that for everything b/w line 194 and 251
-                $pdo->beginTransaction();
-                // Find Subredit ID
-                
-                $q1s = 'SELECT id FROM Categories WHERE name=?';
-                $stmt = $pdo->prepare($q1s);
-                $stmt->execute(array($category));
-
-                
-                $q1s = 'SELECT id FROM Categories WHERE name=?';
-                $stmt = $pdo->prepare($q1s);
-                $stmt->execute(array($category));
-
-/*
-whats the $pdo thing for mysql_real_escape?
-Good question!  PDO uses the alternative to escaping, called prepared statements.
-$pdo->prepare($sql) prepares it and $stmt->execute() exceutes them.
-Instead of doing
-     $sql = "SELEcT * FROM Foo WHERE value= ' mysql_real_escape_string($value);
-     mysql_query($sql);
-you'd do:
-     $sql = "SELECT * FROM Foo WHERE value=?";
-     $stmt = $pdo->prepare($sql);
-     $stmt->execute(array($value));
-ok? ok
-// hey.... is this what we want? PDOStatement->fetchAll — Returns an array containing all of the result set rows
-No i'm looking for a number ;-) search for "number" and "row".
-// what about rowCount ? Preeecisseely
-*/
-// Go to http://us3.php.net/pdo and find the equivalent function to return # of rows a query returns.
-// So mysql_num_rows() would be changed to...? and then delete the $q1q
-                if ($stmt->rowCount() == 0)
-                {
-                    // So change thish entire $qs string into the one w/ placeholders (?) instead of variables, and move the variables to $pdo->execute(array($var1, $var2, etc)) lemme go back up hang on yes stuck
-                    // We're going to 1. rip out sprintf(), 2. replace %s with ? and 3. move $category into the $stmt->execute(array($category)). CleaR? mhm go for it ;p what goes in place of sprintf? Nothing ;) It's the only way to have semi-decent security in the old days.
-                    // you can ask me to do this, if u want. I think I can do one or two things but the first part I don't get. So I replace %s with ? and have what? $qs = ?;
-
-
-                        $qs = 'NSERT INTO Categories (name) VALUES (?)'; 
-                        $stmt = $pdo->prepare($qs);
-                        $stmt->execute(array($category));
-                        echo '<div>', $qs, '</div>';
-                        
-                        $categoryID = $pdo->lastInsertID();
-                }
-                else
-                {
-                    // oops we missed one... go up to line 195
-                    // find the PDO function that fetches only one column... for mysql_result()?
-                    // Um... Ther'es a PDO function that will return only one column instead of
-                    // an array like usual. search for "fetch" and "column". in php.net/pdo
-                    // I'm thinking $stmt->fetchColumn() 
-
-                    $categoryID = $stmt->fetchColumn(0);
-                }
-
-                // Find Redditor's ID
-                $q2s = 'SELECT id FROM Redditors WHERE name=?';
-                $stmt = $pdo->prepare($q2s); //? is that the v ariable yep. now execute it
-                $stmt->execute(array($redditor));
-
-                if ($stmt->rowCount() == 0)
-                {
-                        $qs = 'INSERT INTO Redditors (name) VALUES (?)'; 
-                        $stmt = $pdo->prepare($qs);
-                        $stmt->execute(array($redditor));
-
-                        $qs = 'INSERT INTO Redditors (name) VALUES (?)';
-                        $stmt = $pdo->prepare($qs);
-                        $stmt-execute(array($redditor));
-                        
-                        $redditorID = $pdo->lastInsertID();
-                }
-                else
-                {
-                        $redditorID = $stmt->fetchColumn(0);
-                }
-
-//                $q3s = 'INSERT INTO grabbed_urls (url, first_added, last_fetched) ' .
-//                            'VALUES (?, NOW(), to_timestamp(?))';
-                $q3s = 'INSERT INTO GrabbedURLs (url, first_added, last_fetched) ' .
-                $pdo->prepare($q3s);
-                $pdo->execute(array($url, $time));
-
-                $siteID = $pdo->lastInsertID();
-
-// This is how I format stuff like this.  You're under no obligation to copy, tho it'd be pretty cool if you thought my standard was worth adopting ;)
-// I like it cause it's organized and easy to read
-// Yeah, you coudl say it's 'beautiful'. Add $status = before $stmt->execute
-
-                $q3s = 'INSERT INTO RedditSubmissions ' . 
-                            '(redditKey, title, url,  grabbedURLID, redditorID, categoryID, comments_count, published) VALUES ' .
-                            '(?, ?,  ?,  ?  ?, ?,  ?,  ?)';
-                $stmt = $pdo->prepare($q3s);
-                $status = $stmt->execute(array($redditKey,
-                                                $site['title'],
-                                                $site['link'],
-                                                $siteID,
-                                                $redditorID,
-                                                $categoryID,
-                                                $comments_count,
-                                                date('c', strtotime($site['pubDate']))
-                                            )
-                                        );
-
-                if ($status === false)
-                {
-                        $pdo->rollback();
-                }
-                else
-                {
-                        $pdo->commit();
-                }
-        }
-
-        if ($grabFromDB === false)
-        {
-                apc_store(GRABBED_SITES_KEY, $grabbed_sites, 600);
-        }
-//        apc_delete('redditmirror.cc: grabbed_sites');
-}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -330,6 +112,7 @@ No i'm looking for a number ;-) search for "number" and "row".
                 <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
                 <title>The Reddit Mirror | redditmirror.cc</title>
                 <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'/>
+				M
                 <link rel="stylesheet" href="style.css" />
         </head>
         <body>
@@ -423,6 +206,10 @@ if ($grabFromDB === true)
                                 <li>
                                     <a href="http://www.siteuptime.com/" onmouseover="this.href='http://www.siteuptime.com/statistics.php?Id=90539&amp;UserId=108574';"><img width="85" height="16" alt="website uptime" src="http://btn.siteuptime.com/genbutton.php?u=108574&amp;m=90539&amp;c=blue&amp;p=total" style="border: 0"/></a><noscript><div><a href="http://www.siteuptime.com/">website monitoring</a></div></noscript>
                                 </li>
+								<li>
+<!--									<a href="http://www.mishmomo.com/"><img src="/files/handcodedBlue.png"/></a>-->
+									<a href="http://twitter.com/share" class="twitter-share-button" data-url="http://www.redditmirror.cc/" data-count="vertical" data-via="RedditMirror">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script> 
+								</li>
                         </ul>
                 </div>
         </body>

@@ -39,7 +39,7 @@ function ensureHasAccess()
 
 function getUserURLs(PDO $pdo)
 {
-	$stmt = $pdo->prepare('SELECT g.url, uu.title, g.last_fetched, d.name domain ' .
+	$stmt = $pdo->prepare('SELECT uu.urlID urlID, g.url, uu.title, g.last_fetched, d.name domain ' .
 			              'FROM UserURLs uu ' .
 						  'JOIN GrabbedURLs g ON g.id=uu.urlID ' . 
 						  'JOIN CachedDomains d ON d.id=g.domainID ' .
@@ -50,6 +50,7 @@ function getUserURLs(PDO $pdo)
 	$grabbedURLs = array();
 	while (($url = $stmt->fetchObject('GrabbedURL')))
 	{
+		$url->mirrorURL = 'http://' . $_SERVER['HTTP_HOST'] . '/users/grabbed_urls/' . $url->domain . '_' . $url->urlID . '/';
 		$grabbedURLs[] = $url;
 	}
 
@@ -67,7 +68,7 @@ function getUserURLs(PDO $pdo)
 	foreach ($userURLs as /**@var GrabbedURL**/$url)
 	{
 ?>
-				<li><?php echo $url->last_fetched; ?> &mdash; <a href="<?php echo $url->url; ?>"><?php echo $url->title; ?></a> [<?php echo $url->domain; ?>]</li>
+				<li><?php echo $url->last_fetched; ?> &mdash; <a href="<?php echo $url->mirrorURL; ?>"><?php echo $url->title; ?></a> Orig: [<a href="<?php echo $url->url; ?>"><?php echo $url->domain; ?></a>]</li>
 <?php
 	}
 ?>
